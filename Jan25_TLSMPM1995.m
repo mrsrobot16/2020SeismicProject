@@ -1,4 +1,11 @@
-function [freq,amp] = Jan25_TLSMPM1995(x,cut_off)
+function [freq,T,amp,alpha] = Jan25_TLSMPM1995(x,cut_off)
+
+% STEP 1: APPLY TO THE WHOLE SIGNAL IN A LOOP THROUGH ALL "N" points in "x"
+
+% function [freq,amp,flag,relres] = matrixpencil(x,cut_off) outputs the
+% convergence "flag" and residual norm ("relres") as found from the least
+% squares soltuion for amplitudes using the LSQR function.
+
 
 % -- Total Least Squares Matrix Pencil Method --
 % ------ Implementation by: Sara Makboul -------
@@ -18,10 +25,6 @@ function [freq,amp] = Jan25_TLSMPM1995(x,cut_off)
 % 2) input p (significant digits) for noise removal as the "cut_off" 
 
 
-% NOTE:
-% + The damping factor is ignored and not included in signal poles
-
-
 %%
 
 % setting default value (p=5) for "cut_off" if not specificed in the input:
@@ -32,7 +35,7 @@ end
 
 %%
 
-% setting "N": number of equally spaced points, as the length of the x -->
+% setting "N": number of equally spaced points, as the length of the x
 % signal vector:
 
 N = length(x);
@@ -43,8 +46,9 @@ N = length(x);
 L = ceil(N/3);
 
 % OR (for larger L, use):
-
 % L = (N/2) - 1; 
+% OR:
+% L = floor(N/3);
 
 %%
 
@@ -55,6 +59,8 @@ L = ceil(N/3);
 % doesn't add the "__ -1"
 
 Y = x(hankel(1:N-L, N-L:N));
+
+% OR: Y = hankel(x(1:N-L),x(N-L:N)); ));
 
 %%
 
@@ -155,11 +161,16 @@ clear Vp;
 
 z = eig(pinv(Y1)*Y2,'balance');
 
-
 % Extracting angular frequency (w) from signal pole (z):
 % log() is the natural logarithm ln()
+% ! MAY NEED to take absolute value of angfreq after if dont want (-)Freq :
 
 angfreq = log(z)/(sqrt(-1));
+
+% divide by imaginary i as seen above... OR do 2 steps:: 
+% angfreq = log(z)
+% angfreq = imag(angfreq); 
+
 
 % Take the complex conjugate:
 % ! MAY NEED to just divide by the time step (dt) if this doesn't function:
@@ -170,6 +181,17 @@ angfreq = conj(angfreq);
 % REAL FREQUENCY (f) EXTRACTED! (not angular or complex):
 
 freq = angfreq/(2*pi);
+
+% Converted Real Freq to Period (T = 1/f):
+
+T = 1/(freq);
+
+%%
+
+% Extracting damping coefficient ("alpha") from signal pole (z)
+% MAY BE INCORRECT! also: (check if negative with "-()".)
+
+alpha = -(real(log(z)));
 
 %%
 
