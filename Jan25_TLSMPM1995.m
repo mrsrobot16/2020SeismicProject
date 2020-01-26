@@ -1,10 +1,5 @@
 function [freq,amp] = Jan25_TLSMPM1995(x,cut_off)
 
-% function [freq,amp,flag,relres] = matrixpencil(x,cut_off) outputs the -->
-% convergence "flag" and residual norm ("relres") as found from the -->
-% least squares soltuion for amplitudes using the LSQR function.
-
-
 % -- Total Least Squares Matrix Pencil Method --
 % ------ Implementation by: Sara Makboul -------
 
