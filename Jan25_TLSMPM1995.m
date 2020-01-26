@@ -70,7 +70,7 @@ Y = x(hankel(1:N-L, N-L:N));
 % Then, returns the (N-L) largest singular values = #.
 % Note: S represents the sigma E diagonal matrix with the singular values.
 
-[U,S,V] = svds(Y,N-L);
+[U,S,V] = svds(Y, N-L);
 
 %%
 
@@ -104,6 +104,7 @@ end
 
 % Finding [E'] (sigma), [V'], and [U']:
 % [E'] has only M colums corresponding to M dominant singular values
+% "clear" erases an array.
 
 
 Sp(1:M,1:M) = S(1:M,1:M);
@@ -137,9 +138,9 @@ Vp2T = Vp(2:r,:);
 % Complex conjugate transpose (^H) to [V1'] and [V2'] denoted with (') 
 % is applied to (Vp1T) and (Vp2T):
 
-Y1 = Up*Sp*(Vp1T)';
+Y1 = Up*Sp*((Vp1T)');
 
-Y2 = Up*Sp*(Vp2T)';
+Y2 = Up*Sp*((Vp2T)');
 
 clear Up;
 clear Sp;
