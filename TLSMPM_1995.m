@@ -125,25 +125,28 @@ clear U;
 %%
 
 % The size of Vp is computed, and presented in separate variables: c and r:
+% c = columns; r = rows
 
 [c,r] = size(Vp)
 
 
 % Removing last row from [V'] to create [V1']:
 
-Vp1T = (Vp(1:r-1,:)');
+Vp1T = Vp(1:r-1,:);
 
 % Removing first row from [V'] to create [V2']:
 
-Vp2T = (Vp(2:r,:)');
+Vp2T = Vp(2:r,:);
 
 
 % [Y1] and [Y2]
 % created after SVD, from SVD's noise-filtered, and reconstructed matrices.
+% Complex conjugate transpose (^H) to [V1'] and [V2'] denoted with (') 
+% is applied to (Vp1T) and (Vp2T):
 
-Y1=Up*Sp*Vp1T;
+Y1 = Up*Sp*(Vp1T)';
 
-Y2=Up*Sp*Vp2T;
+Y2 = Up*Sp*(Vp2T)';
 
 clear Up;
 clear Sp;
