@@ -1,4 +1,4 @@
-function [freq,amp,varargout] = matrixpencil(x,cut_off)
+function [freq,amp] = Jan25_TLSMPM1995(x,cut_off)
 
 % function [freq,amp,flag,relres] = matrixpencil(x,cut_off) outputs the -->
 % convergence "flag" and residual norm ("relres") as found from the -->
@@ -28,15 +28,6 @@ function [freq,amp,varargout] = matrixpencil(x,cut_off)
 
 
 %%
-
-% checking # of output parameters specified in executing function call, -->
-% "if _ OR _ " statement:
-
-if (nargout > 4) | (nargout < 2)
-    error('improper number of output parameters');
-    return;
-end
-
 
 % setting default value (p=5) for "cut_off" if not specificed in the input:
 
@@ -100,6 +91,8 @@ maxsingval = singval(1);
 % data (p), set as the "cut_off" during input, as the 'tolerance factor'.
 % And if the if statement is true, the singular value is NOISE.
 
+% M is defined!
+
 for indx = 2:L
     M = indx;
     if log10(abs(singval(indx)/maxsingval)) < -cut_off
@@ -151,3 +144,65 @@ Y2 = Up*Sp*(Vp2T)';
 clear Up;
 clear Sp;
 clear Vp;
+
+%%
+
+% pinv() represents the Moore-Penrose pseudoinverse taken on [Y1]:
+
+% And 'balance' option enabled to improve the conditioning of the matrices
+% The balance option will produce more accurate results (usually).
+% BUT,  if the matrices contain nonzero integers AND small values,
+% balancing may scale the small values to make them as significant 
+% as the integers and produce inaccurate results. In that case:'nobalance'
+
+% z (signal pole) is defined!
+
+z = eig(pinv(Y1)*Y2,'balance');
+
+
+% Extracting angular frequency (w) from signal pole (z):
+% log() is the natural logarithm ln()
+
+angfreq = log(z)/(sqrt(-1));
+
+% Take the complex conjugate:
+% ! MAY NEED to just divide by the time step (dt) if this doesn't function:
+
+angfreq = conj(angfreq);
+
+
+% REAL FREQUENCY (f) EXTRACTED! (not angular or complex):
+
+freq = angfreq/(2*pi);
+
+%%
+
+% ones() creates an array ("A") of ones with the dimensions (__,__):
+% this is the first column of the Z matrix:
+
+A = ones(N, length(z));
+
+
+% Creating the rest of the Z ("A") matrix:
+
+for indx = 2:N
+    A(indx,:) = A(indx-1,:).*z.';
+end
+
+% Least Squares Problem: solution for amplitude ("amp"):
+% Where flag and relres values currently not needed and replaced by "~":
+% relres = Relative residual norm
+% flag = convergence flag
+
+% Apply Moore-Penrose inverse to Z ("A") matrix using "pinv()":
+% x.' is the column vector representing the signal x
+
+% Amplitude extracted!
+
+[amp,~,~] = lsqr(A,x.',[],[],[],[],pinv(A)*(x.'));
+
+% Where:
+% 1st [] = tolerance of method --> default = 1e-6
+% 2nd [] = maximum number of iterations
+% 3rd [] = M1 --> default is no preconditioner
+% 4th [] = M2 --> default is no preconditioner
