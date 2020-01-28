@@ -28,6 +28,7 @@ function [freq,T,amp,alpha] = Jan25_TLSMPM1995(x,cut_off)
 %%
 
 % setting default value (p=5) for "cut_off" if not specificed in the input:
+% "data accurate up to  p (cut_off) = ___ significant decimal digits"
 
 if nargin == 1
     cut_off = 5;
@@ -184,7 +185,7 @@ freq = angfreq/(2*pi);
 
 % Converted Real Freq to Period (T = 1/f):
 
-T = 1/(freq);
+T = 1./(freq);
 
 %%
 
@@ -224,3 +225,65 @@ end
 % 2nd [] = maximum number of iterations
 % 3rd [] = M1 --> default is no preconditioner
 % 4th [] = M2 --> default is no preconditioner
+
+%%
+
+% Signal Reconstruction!
+% For display and curve-fitting purposes.
+
+
+% Create the matrix of exponential decays in each mode and solve to find
+% the contribution of each mode
+
+% create matrix of 0's initially:
+
+Z = zeros(N,M);
+
+% Where: N = signal length initially. M = dominant modes signal REDUCED to
+
+for c = 1:N
+    for m = 1:M
+        Z(c,k) = exp(-alpha(m)*c-1i*freq(m)*c);  % zi now
+    end
+end
+
+y = Z*amp;
+
+y = real(y);   % Keep only the real part
+
+ls = length(y);
+
+% Apply an exponential window (improve SNR and prep for fft)
+and scale the signal
+time = zeros(1,ls);
+we = zeros(1,ls);
+yw = zeros(1,ls);
+xw = zeros(1,ls);
+a = 0.00005;
+xw(1) = signal(1);
+yw(1) = y(1); % beginning of new signal for window/taper represented as yw 
+
+for m = 2:ls
+    time(m)=time(m-1)+1/rate;
+    we(m)=exp(-a*time(m));
+    yw(m)=we(m)*y(m);
+    xw(m)=we(m)*signal(m);
+end
+
+NFFT = 2^nextpow2(ls);  % Next power of 2 from length of y
+ftY = fft(yw,NFFT)/ls;
+ftX = fft(xw,NFFT)/ls;
+ratio=max(abs(ftX))/max(abs(ftY));
+y=y*ratio;
+R=R*ratio;
+
+% Plot the reconstructed signal and the original random decrement signature
+% signal
+figure
+xdata=(1/rate:1/rate:N/rate);
+plot(xdata,y,'--r',xdata,signal);
+
+xlabel('Time (seconds)')
+ylabel('Amplitude')
+legend('Modal curve fit','Measured response')
+end
