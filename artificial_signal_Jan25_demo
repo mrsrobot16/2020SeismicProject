@@ -4,10 +4,11 @@ i = sqrt(-1);
 % DEMO FOR Jan25_TLSMPM1995 (EMFIDES github)
 
 
-% 1) generates signal (artificial)
+% 1) generates signal (artificial) (MAKE IT DAMPING (with theta coeff.)!)
 % 2) plot signal generated
 % 3) run mpm
 % 4) store mpm output values (estimates)
+% 4.5) Display highest amplitude poles and their corresponding estimates
 % 5) reconstruct signal from mpm output values (estimates)
 % 6) Graph reconstructed, filtered MPM signal next to original signal (artificial)
 
@@ -21,12 +22,12 @@ signal_amp = [1 -0.5 0.2 -0.3 0.01]; %% amplitdues in spectra
 signal_length = 100; %% (N) length of signal (points)
 noise_level = 1e-3; %% noise level
 
-signal = signal_amp*exp(i*(signal_angfreq.')*[0:signal_length-1]); %% signal = sum of periodic functions
+signal = signal_amp*exp(i*(signal_angfreq.')*[0:signal_length-1]); %% signal = sum of periodic functions (fAKE SUM (just repeats) = REPRESENTED PERIODICITY BY 100 POINTS)
 % complex conjugate (') taken on the angular freq.
 % (* 0....N-1) = *k
 
 
-% adding randomized noise to sing AFTER sum using randomized array of 100 values (same as N)
+% adding randomized noise to singnal AFTER sum using randomized array of 100 values (same as N)
 
 signal = signal + noise_level*rand(1,signal_length);
 
@@ -36,21 +37,46 @@ plot(real(signal))
 
 %% 
 
-% Running MPM on generated signal & Storring Values.
+% Running MPM on generated signal & Storing Values.
 
 
-[freq,T,amp,alpha]=Jan25_TLSMPM1995(signal,4); %% matrix pencil method 
+% matrix pencil method function call (chose to specify cut_off as p=4):
+
+[freq,T,amp,alpha] = Jan25_TLSMPM1995(signal,4);
 
 
-% we print the frequncies and amplitudies in signal
-% both given on beginning and found by matrix pencil 
-%%method (sorted by abs(amplitiude))
-disp('--freq and amp in signal---')
-[absamp,indx]=sort(abs(signal_amp),'DESCEND');
-disp(signal_angfreq(indx(1:length(signal_angfreq))));
-disp(signal_amp(indx(1:length(signal_angfreq))));
+% Takes highest amplitude mode and PRINTS it's corresponding regular
+% frequency and period
+% Of both: ARTIFICIAL and MPM ESTIMATES
+% All amplitudes made positive
 
-disp('--freq and amp found by MP method---')
-[absamp,indx]=sort(abs(amp),'DESCEND');
-disp(freq(indx(1:length(freq)))');
-disp(amp(indx(1:length(freq)))');
+
+% REAL (WITHOUT NOISE):
+
+disp('---Real Parameter Values---')
+
+[RealMaxAmp, indx1] = max(abs(signal_amp))
+
+RealDomFreq = (signal_angfreq(indx1))/(2*pi) % dominant freq. associated with highest amplitude mode.
+
+RealT = 1./(RealDomFreq) % dominant Period
+
+% RealDamping = ...
+
+
+%--------------------------------------------------------
+% Est. values already stored in TLSMPM program variables.
+%--------------------------------------------------------
+
+
+% EST. (TLSMPM ON REAL + NOISE):
+
+disp('---Estimated Parameter Values---')
+
+[EstMaxAmp, indx2] = max(abs(amp))
+
+EstDomFreq = freq(indx2) % dominant freq. associated with highest amplitude mode.
+
+EstT = T(indx2) % dominant Period
+
+EstDamping = alpha(indx2)
